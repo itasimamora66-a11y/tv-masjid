@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Masjid Darussalam</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-gold: #fbbf24;
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.15);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Poppins', sans-serif; color: #ffffff; overflow: hidden; background: #000; }
+
+        .bg-image { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: url('https://images.unsplash.com/photo-1565552643952-2591603d6d53?q=80&w=2070&auto=format&fit=crop'); background-size: cover; background-position: center; z-index: -2; }
+        .bg-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.9) 100%); z-index: -1; }
+
+        .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 15px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
+        .container { display: flex; flex-direction: column; justify-content: space-between; height: 100vh; padding: 2vh 3vw; }
+
+        .header { display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; padding: 1.5rem 2rem; gap: 20px; }
+        .header .clock-box { font-size: 5vw; font-weight: 800; line-height: 1; text-align: left; letter-spacing: 2px; }
+        .header .masjid-info { text-align: center; }
+        .header .masjid-info h1 { font-size: 3vw; font-weight: 700; color: var(--primary-gold); margin-bottom: 5px; text-transform: uppercase; }
+        .header .masjid-info p { font-size: 1.2vw; font-weight: 400; letter-spacing: 1px; color: #ddd; }
+        .header .date-box { text-align: right; line-height: 1.4; }
+        .header .date-box .masehi { font-size: 1.6vw; font-weight: 600; }
+        .header .date-box .hijri { font-size: 1.4vw; font-weight: 400; color: var(--primary-gold); }
+
+        .middle-area { flex-grow: 1; display: flex; align-items: flex-end; padding-bottom: 2vh; }
+        .countdown-box { display: inline-block; padding: 10px 25px; border-radius: 30px; font-size: 1.5vw; font-weight: 600; letter-spacing: 1px; background: rgba(0,0,0,0.6); border: 1px solid var(--primary-gold); color: white; }
+        .countdown-box span { color: var(--primary-gold); font-weight: 700; margin-left: 10px; }
+
+        .footer-area { display: flex; flex-direction: column; gap: 1.5vh; }
+        .prayer-row { display: flex; justify-content: space-between; padding: 10px; gap: 10px; }
+        .prayer-item { flex: 1; text-align: center; padding: 1.5vh 0; border-radius: 10px; transition: all 0.3s ease; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
+        .prayer-item h2 { font-size: 1.5vw; font-weight: 600; text-transform: uppercase; color: #fff; margin-bottom: 5px; letter-spacing: 1px; }
+        .prayer-item p { font-size: 3vw; font-weight: 800; letter-spacing: 1px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
+        
+        #box-Imsak   { background: rgba(16, 185, 129, 0.6); border: 1px solid rgba(16, 185, 129, 0.8); } 
+        #box-Fajr    { background: rgba(59, 130, 246, 0.6); border: 1px solid rgba(59, 130, 246, 0.8); } 
+        #box-Sunrise { background: rgba(6, 182, 212, 0.6);  border: 1px solid rgba(6, 182, 212, 0.8); }  
+        #box-Dhuhr   { background: rgba(245, 158, 11, 0.6); border: 1px solid rgba(245, 158, 11, 0.8); } 
+        #box-Asr     { background: rgba(139, 92, 246, 0.6); border: 1px solid rgba(139, 92, 246, 0.8); } 
+        #box-Maghrib { background: rgba(220, 38, 38, 0.6);  border: 1px solid rgba(220, 38, 38, 0.8); }  
+        #box-Isha    { background: rgba(67, 56, 202, 0.6);  border: 1px solid rgba(67, 56, 202, 0.8); }  
+
+        .prayer-item.active { transform: scale(1.08); box-shadow: 0 0 20px rgba(255, 255, 255, 0.6); border: 2px solid #ffffff !important; z-index: 5; }
+        .prayer-item.active h2 { color: var(--primary-gold); text-shadow: 0 0 10px rgba(0,0,0,0.8); }
+        .prayer-item.active p { color: #ffffff; text-shadow: 0 0 15px rgba(255, 255, 255, 0.8); }
+
+        .marquee-box { padding: 12px 20px; font-size: 1.5vw; font-weight: 400; letter-spacing: 1px; }
+        
+        #iqamah-view { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle, #1e293b 0%, #000000 100%); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
+        .iqamah-title { font-size: 4vw; color: var(--primary-gold); font-weight: 600; letter-spacing: 3px; }
+        .iqamah-prayer { font-size: 6vw; font-weight: 800; margin: 10px 0; text-transform: uppercase; }
+        .iqamah-timer { font-size: 18vw; font-weight: 800; color: #ef4444; line-height: 1; text-shadow: 0 0 30px rgba(239,68,68,0.5); }
+
+        #black-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 200; }
+    </style>
+</head>
+<body>
+    <div class="bg-image"></div>
+    <div class="bg-overlay"></div>
+
+    <div class="container">
+        <header class="header glass-panel">
+            <div class="clock-box" id="clock">00:00:00</div>
+            <div class="masjid-info">
+                <h1 id="masjid-name">Memuat Data...</h1>
+                <p>Kel. Kalibaru, Kec. Cilincing, Jakarta Utara</p>
+            </div>
+            <div class="date-box">
+                <div class="masehi" id="date-masehi">Memuat...</div>
+                <div class="hijri" id="date-hijri">Memuat...</div>
+            </div>
+        </header>
+
+        <main class="middle-area">
+            <div class="countdown-box glass-panel">
+                Menuju <span id="next-prayer-name">Salat</span> <span id="countdown-timer">--:--:--</span>
+            </div>
+        </main>
+
+        <footer class="footer-area">
+            <div class="prayer-row glass-panel">
+                <div class="prayer-item" id="box-Imsak"><h2>Imsak</h2><p id="time-Imsak">--:--</p></div>
+                <div class="prayer-item" id="box-Fajr"><h2>Subuh</h2><p id="time-Fajr">--:--</p></div>
+                <div class="prayer-item" id="box-Sunrise"><h2>Syuruq</h2><p id="time-Sunrise">--:--</p></div>
+                <div class="prayer-item" id="box-Dhuhr"><h2>Dzuhur</h2><p id="time-Dhuhr">--:--</p></div>
+                <div class="prayer-item" id="box-Asr"><h2>Ashar</h2><p id="time-Asr">--:--</p></div>
+                <div class="prayer-item" id="box-Maghrib"><h2>Maghrib</h2><p id="time-Maghrib">--:--</p></div>
+                <div class="prayer-item" id="box-Isha"><h2>Isya</h2><p id="time-Isha">--:--</p></div>
+            </div>
+            <div class="marquee-box glass-panel">
+                <marquee scrollamount="6">Luruskan dan rapatkan saf, karena lurus dan rapatnya saf termasuk kesempurnaan salat. Matikan alat komunikasi selama salat berlangsung.</marquee>
+            </div>
+        </footer>
+    </div>
+
+    <div id="iqamah-view">
+        <div class="iqamah-title">WAKTU SALAT TELAH TIBA</div>
+        <div class="iqamah-prayer" id="iqamah-prayer-name">SUBUH</div>
+        <div class="iqamah-timer" id="iqamah-timer-text">00:00</div>
+    </div>
+    <div id="black-screen"></div>
+    <audio id="alarm-audio" src="alarm.mp3" preload="auto"></audio>
+
+    <script>
+        let settings = { durasi_iqamah: 5, durasi_gelap: 3 };
+        let currentStatus = 'NORMAL';
+        let prayerTimes = {};
+        let activePrayer = '';
+
+        const daysId = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const monthsId = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        async function fetchSettings() {
+            try {
+                const res = await fetch('settings.json?t=' + new Date().getTime());
+                settings = await res.json();
+                document.getElementById('masjid-name').innerText = settings.nama_masjid || "Masjid Darussalam Al-Amin";
+            } catch (e) { console.log("Gagal baca settings"); }
+        }
+
+        async function fetchPrayers() {
+            const date = new Date();
+            const url = `https://api.aladhan.com/v1/timings/${date.getDate()}-${date.getMonth()+1}-${date.getFullYear()}?latitude=-6.1054&longitude=106.9315&method=20`;
+            try {
+                const res = await fetch(url);
+                const data = await res.json();
+                prayerTimes = data.data.timings;
+                
+                ['Imsak', 'Fajr', 'Sunrise', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'].forEach(p => {
+                    if (document.getElementById(`time-${p}`)) document.getElementById(`time-${p}`).innerText = prayerTimes[p];
+                });
+
+                const masehiText = `${daysId[date.getDay()]}, ${date.getDate()} ${monthsId[date.getMonth()]} ${date.getFullYear()}`;
+                document.getElementById('date-masehi').innerText = masehiText;
+                
+                const hijriData = data.data.date.hijri;
+                document.getElementById('date-hijri').innerText = `${hijriData.day} ${hijriData.month.en} ${hijriData.year} H`;
+            } catch (e) { console.log("Gagal fetch jadwal"); }
+        }
+
+        setInterval(() => {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
+            
+            document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
+            
+            if (currentStatus === 'NORMAL' && Object.keys(prayerTimes).length > 0) {
+                checkAlarm(timeString);
+                updateCountdown(now);
+            }
+        }, 1000);
+
+        function updateCountdown(now) {
+            const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+            let nextPrayer = null;
+            let nextPrayerTimeObj = null;
+
+            for (let p of prayers) {
+                let [h, m] = prayerTimes[p].split(':');
+                let pTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), parseInt(h), parseInt(m), 0);
+                if (pTime > now) {
+                    nextPrayer = p;
+                    nextPrayerTimeObj = pTime;
+                    break;
+                }
+            }
+
+            if (!nextPrayer) {
+                nextPrayer = 'Fajr';
+                let [h, m] = prayerTimes['Fajr'].split(':');
+                nextPrayerTimeObj = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, parseInt(h), parseInt(m), 0);
+            }
+
+            document.querySelectorAll('.prayer-item').forEach(el => el.classList.remove('active'));
+            if (document.getElementById(`box-${nextPrayer}`)) document.getElementById(`box-${nextPrayer}`).classList.add('active');
+
+            let diff = Math.floor((nextPrayerTimeObj - now) / 1000);
+            let sH = String(Math.floor(diff / 3600)).padStart(2, '0');
+            let sM = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+            let sS = String(diff % 60).padStart(2, '0');
+            
+            const pNames = { Fajr: 'Subuh', Dhuhr: 'Dzuhur', Asr: 'Ashar', Maghrib: 'Maghrib', Isha: 'Isya' };
+            document.getElementById('next-prayer-name').innerText = pNames[nextPrayer];
+            document.getElementById('countdown-timer').innerText = `-${sH}:${sM}:${sS}`;
+        }
+
+        function checkAlarm(currentTime) {
+            const prayers = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
+            prayers.forEach(prayer => {
+                if (prayerTimes[prayer] === currentTime && !localStorage.getItem(`alarm_${prayer}_${new Date().getDate()}`)) {
+                    localStorage.setItem(`alarm_${prayer}_${new Date().getDate()}`, 'true');
+                    activePrayer = prayer;
+                    startProsesIqamah();
+                }
+            });
+        }
+
+        function startProsesIqamah() {
+            currentStatus = 'ALARM';
+            document.getElementById('alarm-audio').play().catch(() => console.log("Klik layar 1x untuk audio"));
+            
+            const pNames = { Fajr: 'SUBUH', Dhuhr: 'DZUHUR', Asr: 'ASHAR', Maghrib: 'MAGHRIB', Isha: 'ISYA' };
+            document.getElementById('iqamah-prayer-name').innerText = pNames[activePrayer];
+
+            setTimeout(() => {
+                document.getElementById('alarm-audio').pause();
+                currentStatus = 'IQAMAH';
+                document.getElementById('iqamah-view').style.display = 'flex';
+                let timer = settings.durasi_iqamah * 60;
+                
+                let iqInterval = setInterval(() => {
+                    let m = Math.floor(timer / 60);
+                    let s = timer % 60;
+                    document.getElementById('iqamah-timer-text').innerText = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                    timer--;
+                    
+                    if (timer < 0) {
+                        clearInterval(iqInterval);
+                        document.getElementById('iqamah-view').style.display = 'none';
+                        currentStatus = 'BLACKSCREEN';
+                        document.getElementById('black-screen').style.display = 'block';
+                        
+                        setTimeout(() => {
+                            document.getElementById('black-screen').style.display = 'none';
+                            currentStatus = 'NORMAL';
+                        }, settings.durasi_gelap * 60 * 1000);
+                    }
+                }, 1000);
+            }, 5000);
+        }
+
+        fetchSettings();
+        fetchPrayers();
+        setInterval(fetchSettings, 60000);
+    </script>
+</body>
+</html>
