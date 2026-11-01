@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Controller</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; padding: 20px; }
+        .container { background: white; max-width: 400px; margin: auto; padding: 20px; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        input, button { width: 100%; padding: 10px; margin: 10px 0; box-sizing: border-box; }
+        button { background: #28a745; color: white; border: none; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container" id="dashboard">
+        <h2>Pengaturan Masjid</h2>
+        <p style="font-size: 13px; color: #555;" id="status-text">Mengambil data dari sistem...</p>
+        
+        <label>Nama Masjid</label>
+        <input type="text" id="input-nama">
+        
+        <label>Durasi Iqamah (Menit)</label>
+        <input type="number" id="input-iqamah">
+        
+        <label>Durasi Layar Gelap (Menit)</label>
+        <input type="number" id="input-gelap">
+        
+        <button onclick="simpanPengaturan()" id="btn-simpan">Simpan Perubahan</button>
+        <p style="font-size: 12px; color: red;">*Butuh waktu 1-2 menit untuk tampil di TV.</p>
+    </div>
+
+    <script>
+        // === KONFIGURASI GITHUB (SUDAH DIATUR SESUAI AKUN ANDA) ===
+        const CONFIG = {
+            ghUser: "itasimamora66-a11y", 
+            ghRepo: "jual-beli",          
+            ghToken: "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" // <- Ganti tulisan ini dengan Token ghp_... Anda
+        };
+
+        let fileSha;
+
+        async function loadData() {
+            const url = `https://api.github.com/repos/${CONFIG.ghUser}/${CONFIG.ghRepo}/contents/settings.json`;
+            try {
+                const res = await fetch(url, { headers: { "Authorization": `token ${CONFIG.ghToken}` } });
+                if (res.ok) {
+                    const data = await res.json();
+                    fileSha = data.sha;
+                    const content = JSON.parse(decodeURIComponent(escape(atob(data.content))));
+                    
+                    document.getElementById('input-nama').value = content.nama_masjid;
+                    document.getElementById('input-iqamah').value = content.durasi_iqamah;
+                    document.getElementById('input-gelap').value = content.durasi_gelap;
+                    document.getElementById('status-text').innerText = "Data berhasil dimuat.";
+                } else {
+                    alert("Gagal memuat data. Pastikan Token GitHub benar dan file settings.json sudah ada di repository Anda.");
+                    document.getElementById('status-text').innerText = "Gagal memuat data.";
+                }
+            } catch (error) {
+                alert("Terjadi kesalahan koneksi jaringan.");
+            }
+        }
+
+        async function simpanPengaturan() {
+            const btn = document.getElementById('btn-simpan');
+            btn.innerText = "Menyimpan...";
+            
+            const newData = {
+                nama_masjid: document.getElementById('input-nama').value,
+                durasi_iqamah: parseInt(document.getElementById('input-iqamah').value),
+                durasi_gelap: parseInt(document.getElementById('input-gelap').value)
+            };
+
+            const encodedContent = btoa(unescape(encodeURIComponent(JSON.stringify(newData, null, 2))));
+            const url = `https://api.github.com/repos/${CONFIG.ghUser}/${CONFIG.ghRepo}/contents/settings.json`;
+            const payload = {
+                message: "Update pengaturan masjid dari Web Admin",
+                content: encodedContent,
+                sha: fileSha
+            };
+
+            const res = await fetch(url, {
+                method: 'PUT',
+                headers: { "Authorization": `token ${CONFIG.ghToken}`, "Content-Type": "application/json" },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                fileSha = data.content.sha; 
+                alert("Berhasil disimpan! Tampilan TV akan otomatis update dalam 1-2 menit.");
+            } else {
+                alert("Gagal menyimpan. Cek kembali Token GitHub Anda.");
+            }
+            btn.innerText = "Simpan Perubahan";
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>
