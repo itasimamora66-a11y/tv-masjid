@@ -20,6 +20,17 @@
         .glass-panel { background: var(--glass-bg); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--glass-border); border-radius: 15px; box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3); }
         .container { display: flex; flex-direction: column; justify-content: space-between; height: 100vh; padding: 2vh 3vw; }
 
+        /* Tombol Gear di Pojok Kanan Atas */
+        .settings-btn {
+            position: fixed; top: 15px; right: 20px; z-index: 1000;
+            background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            text-decoration: none; font-size: 20px; backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+        .settings-btn:hover { background: var(--primary-gold); color: #000; border-color: var(--primary-gold); transform: rotate(90deg); }
+
         .header { display: grid; grid-template-columns: 1fr 2fr 1fr; align-items: center; padding: 1.5rem 2rem; gap: 20px; }
         .header .clock-box { font-size: 5vw; font-weight: 800; line-height: 1; text-align: left; letter-spacing: 2px; }
         .header .masjid-info { text-align: center; }
@@ -57,11 +68,13 @@
         .iqamah-title { font-size: 4vw; color: var(--primary-gold); font-weight: 600; letter-spacing: 3px; }
         .iqamah-prayer { font-size: 6vw; font-weight: 800; margin: 10px 0; text-transform: uppercase; }
         .iqamah-timer { font-size: 18vw; font-weight: 800; color: #ef4444; line-height: 1; text-shadow: 0 0 30px rgba(239,68,68,0.5); }
-
         #black-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: none; z-index: 200; }
     </style>
 </head>
 <body>
+    <!-- Tombol Gear Kecil Menuju Admin -->
+    <a href="admin.html" class="settings-btn" title="Pengaturan Admin">&#9881;</a>
+
     <div class="bg-image"></div>
     <div class="bg-overlay"></div>
 
@@ -109,6 +122,8 @@
     <audio id="alarm-audio" src="alarm.mp3" preload="auto"></audio>
 
     <script>
+        const LINK_GOOGLE_SHEETS = ""; // Kosongkan jika pakai GitHub settings.json
+
         let settings = { durasi_iqamah: 5, durasi_gelap: 3 };
         let currentStatus = 'NORMAL';
         let prayerTimes = {};
